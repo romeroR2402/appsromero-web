@@ -30,3 +30,4 @@ export const Users = (p) => <S {...p}><circle cx="9" cy="8" r="3.5" /><path d="M
 export const LogOut = (p) => <S {...p}><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10" /></S>;
 export const Eye = (p) => <S {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></S>;
 export const Alert = (p) => <S {...p}><path d="M12 3 2 20h20z" /><path d="M12 10v4M12 17h0" /></S>;
+export const Expand = (p) => <S {...p}><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7" /></S>;

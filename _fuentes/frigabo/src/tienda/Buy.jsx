@@ -4,6 +4,7 @@ import { sb, useStore } from './store.jsx';
 import { cleanText, isValidClabe, isValidPhone, onlyDigits } from '../security.js';
 import { ConditionBadge, Empty, Field, Header, Img, Qty, Sheet, Spinner } from '../components/UI.jsx';
 import * as I from '../components/Icons.jsx';
+import { Gallery } from './Gallery.jsx';
 
 export function ProductScreen({ id, go, back }) {
   const { byId, addToCart, favs, toggleFav, notify, loading } = useStore();
@@ -11,18 +12,13 @@ export function ProductScreen({ id, go, back }) {
   const [color, setColor] = useState();
   const [talla, setTalla] = useState();
   const [qty, setQty] = useState(1);
-  const [slide, setSlide] = useState(0);
   useEffect(() => { if (p) { setColor((c) => c ?? p.colores[0]); setTalla((t) => t ?? p.tallas[0]); } }, [p]);
   if (loading) return <div className="screen"><Spinner /></div>;
   if (!p) return <div className="screen"><Header title="" onBack={back} /><Empty title="Producto no disponible" text="Puede que ya se haya vendido." /></div>;
   const soldOut = p.stock === 0;
   return (
     <div className="screen detail">
-      <div className="hero">
-        <button className="icon-btn float" aria-label="Regresar" onClick={back}><I.Back /></button>
-        <Img src={p.imagenes[slide]} alt={p.nombre} />
-        {p.imagenes.length > 1 && <div className="dots">{p.imagenes.map((_, i) => <button key={i} aria-label={`Foto ${i + 1}`} className={i === slide ? 'on' : ''} onClick={() => setSlide(i)} />)}</div>}
-      </div>
+      <Gallery images={p.imagenes} alt={p.nombre} onBack={back} />
       <div className="detail-body">
         <div className="title-row">
           <h1>{p.nombre}</h1>
