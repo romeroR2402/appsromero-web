@@ -48,7 +48,7 @@ export function AuthScreen({ go, back, next }) {
   };
 
   return (
-    <div className="screen auth">
+    <div className="screen narrow auth">
       <Header title="" onBack={back} />
       <div className="auth-brand"><LogoMark size={96} /><Wordmark /><p className="tagline">TODO A UN CLIC</p></div>
       {mode !== 'olvide' && <Chips label="Modo" value={mode} onChange={(m) => { setMode(m); setErr(''); setInfo(''); }}
@@ -89,7 +89,7 @@ function NewPassword({ go }) {
     setRecovery(false); notify('Contraseña actualizada'); go('/cuenta', { replace: true });
   };
   return (
-    <div className="screen auth">
+    <div className="screen narrow auth">
       <Header title="Nueva contraseña" />
       <form onSubmit={save}>
         <Field label="Nueva contraseña" hint="Mínimo 8 caracteres, con letras y números." error={err}>
@@ -119,7 +119,7 @@ export function CuentaScreen({ go }) {
     }));
   }, [user]);
 
-  if (!authReady) return <div className="screen"><Spinner /></div>;
+  if (!authReady) return <div className="screen narrow"><Spinner /></div>;
   if (!user) return <AuthScreen go={go} />;
   const save = async () => {
     const nombre = cleanText(f.nombre, 80);
@@ -132,7 +132,7 @@ export function CuentaScreen({ go }) {
   };
   const name = perfil?.nombre || user.email;
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Mi cuenta" />
       <section className="profile-card">
         <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
@@ -174,7 +174,7 @@ export function PedidosScreen({ go }) {
     if (!ok) return;
     sb.from('fg_pedidos').select('folio,estado,total,items,dia,horario,creado').order('creado', { ascending: false }).then(({ data }) => setOrders(data || []));
   }, [ok]);
-  if (!ok || !orders) return <div className="screen"><Header title="Mis pedidos" /><Spinner /></div>;
+  if (!ok || !orders) return <div className="screen narrow"><Header title="Mis pedidos" /><Spinner /></div>;
   const activos = orders.filter((o) => !['entregado', 'cancelado'].includes(o.estado));
   const pasados = orders.filter((o) => ['entregado', 'cancelado'].includes(o.estado));
   const Row = ({ o }) => (
@@ -188,7 +188,7 @@ export function PedidosScreen({ go }) {
     </button></li>
   );
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Mis pedidos" />
       {!orders.length && <Empty title="Aún no tienes pedidos" text="Cuando compres algo aparecerá aquí con su folio, fecha de entrega y estado." action={<button className="btn" onClick={() => go('/')}>Ir a la tienda</button>} />}
       {activos.length > 0 && <><div className="section-head"><h2>En curso</h2></div><ul className="order-list">{activos.map((o) => <Row key={o.folio} o={o} />)}</ul></>}
@@ -245,8 +245,8 @@ export function PedidoScreen({ folio, go }) {
   }, [folio]);
   useEffect(() => { if (ok) load(); }, [ok, load]);
 
-  if (!ok || o === undefined || !ajustes) return <div className="screen"><Header title="Pedido" /><Spinner /></div>;
-  if (!o) return <div className="screen"><Header title="Pedido" onBack={() => go('/pedidos')} /><Empty title="Pedido no encontrado" text="Revisa tus pedidos." /></div>;
+  if (!ok || o === undefined || !ajustes) return <div className="screen narrow"><Header title="Pedido" /><Spinner /></div>;
+  if (!o) return <div className="screen narrow"><Header title="Pedido" onBack={() => go('/pedidos')} /><Empty title="Pedido no encontrado" text="Revisa tus pedidos." /></div>;
 
   const cancel = async () => {
     const { error } = await sb.rpc('fg_cancelar_pedido', { p_folio: o.folio });
@@ -261,7 +261,7 @@ export function PedidoScreen({ folio, go }) {
   const activo = !['entregado', 'cancelado'].includes(o.estado);
 
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Tu pedido" onBack={() => go('/pedidos')} />
       <div className="order-hero">
         <h2 className="mono">{o.folio}</h2>
@@ -367,7 +367,7 @@ export function CasosScreen({ go }) {
     sb.from('fg_casos').select('*, fg_pedidos(folio)').order('creado', { ascending: false }).then(({ data }) => setCasos(data || []));
   }, [ok]);
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Resolución" onBack={() => go('/cuenta')} />
       <p className="note">¿Algo no salió bien? Abre un caso desde el pedido (botón “Reportar un problema”). Aquí ves el avance y nuestra respuesta.</p>
       {!casos ? <Spinner /> : !casos.length ? <Empty title="Sin casos" text="¡Qué bien! No tienes problemas reportados." /> :
@@ -379,7 +379,7 @@ export function CasosScreen({ go }) {
 export function SeguridadScreen({ back }) {
   const { ajustes } = useStore();
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Compra segura" onBack={back} />
       <section className="box tips">
         <ul>

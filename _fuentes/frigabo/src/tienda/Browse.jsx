@@ -151,10 +151,10 @@ export function FilterSheet({ open, onClose, value, onApply }) {
   );
 }
 
-export function SearchScreen({ go, back }) {
+export function SearchScreen({ go, back, initial = '' }) {
   const { products, recent, setRecent, pushRecent } = useStore();
-  const [q, setQ] = useState('');
-  const [submitted, setSubmitted] = useState('');
+  const [q, setQ] = useState(initial);
+  const [submitted, setSubmitted] = useState(initial);
   const [f, setF] = useState(DEFAULT_F);
   const [open, setOpen] = useState(false);
   const results = useMemo(() => applyFilters(products, f, submitted), [products, f, submitted]);

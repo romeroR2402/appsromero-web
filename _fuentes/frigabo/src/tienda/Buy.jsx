@@ -58,7 +58,7 @@ export function CartScreen({ go }) {
   const { cart, cartTotal, setQty, removeFromCart, user } = useStore();
   const [confirm, setConfirm] = useState(null);
   return (
-    <div className="screen">
+    <div className="screen narrow">
       <Header title="Mi carrito" />
       {cart.length === 0 ? (
         <Empty title="Tu carrito está vacío" text="Explora nuevos, usados y productos con caja dañada a precio especial."
@@ -119,7 +119,7 @@ export function Checkout({ go, back }) {
   useEffect(() => { if (ajustes) setForm((f) => ({ ...f, horario: f.horario || ajustes.horarios[0], pago: transferOk ? f.pago : 'efectivo' })); }, [ajustes, transferOk]);
 
   if (!user) { go('/cuenta?next=/checkout', { replace: true }); return null; }
-  if (!cart.length) return <div className="screen"><Header title="Entrega y pago" onBack={back} /><Empty title="No hay nada que pagar" text="Agrega productos a tu carrito." /></div>;
+  if (!cart.length) return <div className="screen narrow"><Header title="Entrega y pago" onBack={back} /><Empty title="No hay nada que pagar" text="Agrega productos a tu carrito." /></div>;
   if (!ajustes) return <div className="screen"><Spinner /></div>;
 
   const errors = {
@@ -146,7 +146,7 @@ export function Checkout({ go, back }) {
   };
 
   return (
-    <div className="screen">
+    <div className="screen narrow checkout">
       <Header title="Entrega y pago" onBack={back} />
       <section className="box">
         <div className="box-head"><I.Pin size={18} /><b>Punto de entrega</b></div>
@@ -184,15 +184,19 @@ export function Checkout({ go, back }) {
         <span>Entiendo el estado de cada producto (nuevo, usado o caja dañada) y lo revisaré al recibirlo.</span>
       </label>
       {touched && errors.ok && <p className="err">{errors.ok}</p>}
-      <div className="summary">
-        {cart.map((x) => <div key={x.key} className="sum-row"><span>{x.qty} × {x.product.nombre}</span><span>{money(x.product.precio * x.qty)}</span></div>)}
-        <div className="sum-row total"><span>Total</span><span>{money(cartTotal)}</span></div>
-      </div>
-      {serverErr && <p className="err-box" role="alert"><I.Alert size={16} /> {serverErr}</p>}
-      <div className="buy-bar">
-        <div><small className="muted">Total</small><strong>{money(cartTotal)}</strong></div>
-        <button className="btn" onClick={submit} disabled={sending}><I.Lock size={18} /> {sending ? 'Enviando…' : 'Confirmar pedido'}</button>
-      </div>
+      <aside className="checkout-side">
+        <div className="summary">
+          <b className="side-title">Tu pedido</b>
+          {cart.map((x) => <div key={x.key} className="sum-row"><span>{x.qty} × {x.product.nombre}</span><span>{money(x.product.precio * x.qty)}</span></div>)}
+          <div className="sum-row total"><span>Total</span><span>{money(cartTotal)}</span></div>
+        </div>
+        {serverErr && <p className="err-box" role="alert"><I.Alert size={16} /> {serverErr}</p>}
+        <div className="buy-bar">
+          <div><small className="muted">Total</small><strong>{money(cartTotal)}</strong></div>
+          <button className="btn" onClick={submit} disabled={sending}><I.Lock size={18} /> {sending ? 'Enviando…' : 'Confirmar pedido'}</button>
+        </div>
+        <p className="muted small side-note"><I.Shield size={14} /> Precio y stock se confirman en el servidor al crear tu pedido.</p>
+      </aside>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Home, ListScreen, SearchScreen } from './Browse.jsx';
 import { CartScreen, Checkout, ProductScreen } from './Buy.jsx';
 import { AuthScreen, CasosScreen, CuentaScreen, PedidoScreen, PedidosScreen, SeguridadScreen } from './Cuenta.jsx';
 import * as I from '../components/Icons.jsx';
+import { LogoMark, Wordmark } from '../components/UI.jsx';
 
 const parse = () => {
   const raw = location.hash.replace(/^#/, '');
@@ -30,7 +31,7 @@ export default function App() {
   let screen;
   switch (seg[0]) {
     case undefined: screen = <Home go={go} />; break;
-    case 'buscar': screen = <SearchScreen go={go} back={back} />; break;
+    case 'buscar': screen = <SearchScreen key={query.q || ''} go={go} back={back} initial={(query.q || '').slice(0, 60)} />; break;
     case 'c': screen = <ListScreen key={path} go={go} back={back} category={seg[1]} />; break;
     case 'condicion': screen = <ListScreen key={path} go={go} back={back} condition={seg[1]} />; break;
     case 'favoritos': screen = <ListScreen key={path} go={go} back={back} favoritos />; break;
@@ -54,6 +55,7 @@ export default function App() {
   const showNav = tabs.some((t) => t.to === path) && !next || ['c', 'condicion', 'favoritos'].includes(seg[0]);
   return (
     <div className={`app ${showNav ? 'with-nav' : ''}`}>
+      <DesktopHeader path={path} go={go} tabs={tabs} />
       <main>{screen}</main>
       {showNav && (
         <nav className="bottom-nav" aria-label="Principal">
@@ -73,4 +75,30 @@ function AuthGate({ go, back, next }) {
   const { user, authReady } = useStore();
   useEffect(() => { if (authReady && user) go(next, { replace: true }); }, [authReady, user]);
   return <AuthScreen go={go} back={back} next={next} />;
+}
+
+/** Barra superior para tableta horizontal y computadora (en móvil se oculta con CSS) */
+function DesktopHeader({ path, go, tabs }) {
+  const [q, setQ] = useState('');
+  const submit = (e) => { e.preventDefault(); const t = q.trim().slice(0, 60); if (t) { go(`/buscar?q=${encodeURIComponent(t)}`); setQ(''); } };
+  return (
+    <header className="desk-header">
+      <div className="desk-inner">
+        <button className="desk-brand" onClick={() => go('/')} aria-label="Fri & Gabo, inicio">
+          <LogoMark size={42} /><span><Wordmark small /><small className="tagline">TODO A UN CLIC</small></span>
+        </button>
+        <form className="desk-search" role="search" onSubmit={submit}>
+          <I.Search size={18} />
+          <input type="search" placeholder="Buscar productos…" maxLength={60} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar productos" />
+        </form>
+        <nav className="desk-nav" aria-label="Principal">
+          {tabs.filter((t) => t.to !== '/buscar').map((t) => (
+            <button key={t.to} className={path === t.to ? 'on' : ''} onClick={() => go(t.to)} aria-current={path === t.to ? 'page' : undefined}>
+              <span className="bn-icon">{t.icon}{t.badge > 0 && <b>{t.badge}</b>}</span><span>{t.label}</span>
+            </button>
+          ))}
+        </nav>
+      </div>
+    </header>
+  );
 }
