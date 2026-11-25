@@ -36,3 +36,10 @@ description: Reglas de seguridad de Fri & Gabo para clientes y vendedor (Supabas
 
 ## Pendientes recomendados (configuración de Supabase, no de código)
 Activar "Leaked password protection"; agregar `https://www.appsromero.com/frigabo/` a Redirect URLs de Auth.
+
+## Privacidad de datos (LFPDPPP 2025)
+- Aviso de privacidad en `#/privacidad` (src/tienda/Privacidad.jsx). Si cambias finalidades o datos, sube `AVISO_VERSION` (src/lib/db.js): a los clientes se les pide aceptar de nuevo antes de comprar.
+- Consentimiento: casilla obligatoria al registrarse (finalidades necesarias) y casilla separada opcional para promociones. Se guarda fecha y versión en `fg_perfiles`.
+- Derechos ARCO: el cliente envía solicitudes (`fg_solicitudes_datos`); el admin responde en Panel → Privacidad. Cancelación = `fg_anonimizar_cliente()` (borra perfil, anonimiza pedidos, conserva montos por obligación fiscal). No borres cuentas de `auth.users`: el proyecto Supabase es compartido con otras tiendas.
+- No agregar analítica, píxeles ni recursos de terceros sin actualizar el aviso (sección 4 y 7) y la CSP. Las fuentes se sirven desde el propio sitio.
+- Datos mínimos: no pedir dirección, INE, fecha de nacimiento ni datos bancarios del cliente.
