@@ -7,7 +7,7 @@ import { AdminProvider, sb, useAdmin } from './data.jsx';
 import { Resumen } from './Resumen.jsx';
 import { Pedidos } from './Pedidos.jsx';
 import { Productos } from './Productos.jsx';
-import { Clientes, Casos, Ajustes } from './Otros.jsx';
+import { Clientes, Casos, Ajustes, Privacidad } from './Otros.jsx';
 
 const IDLE_MS = 30 * 60_000;
 
@@ -81,18 +81,20 @@ const NAV = [
   { k: 'productos', label: 'Productos', icon: I.Box },
   { k: 'clientes', label: 'Clientes', icon: I.Users },
   { k: 'casos', label: 'Resolución', icon: I.Chat },
+  { k: 'privacidad', label: 'Privacidad', icon: I.Shield },
   { k: 'ajustes', label: 'Ajustes', icon: I.Gear },
 ];
 
 function Shell() {
   const [tab, setTab] = useState(() => location.hash.replace('#', '') || 'resumen');
-  const { orders, casos, loading, error, refresh, toast } = useAdmin();
+  const { orders, casos, solicitudes, loading, error, refresh, toast } = useAdmin();
   useEffect(() => { location.replace('#' + tab); window.scrollTo(0, 0); }, [tab]);
   const badge = {
     pedidos: orders.filter((o) => ['pago_pendiente', 'por_confirmar'].includes(o.estado)).length,
     casos: casos.filter((c) => ['abierto', 'en_revision'].includes(c.estado)).length,
+    privacidad: solicitudes.filter((s) => ['recibida', 'en_proceso'].includes(s.estado)).length,
   };
-  const Page = { resumen: Resumen, pedidos: Pedidos, productos: Productos, clientes: Clientes, casos: Casos, ajustes: Ajustes }[tab] || Resumen;
+  const Page = { resumen: Resumen, pedidos: Pedidos, productos: Productos, clientes: Clientes, casos: Casos, privacidad: Privacidad, ajustes: Ajustes }[tab] || Resumen;
   return (
     <div className="admin">
       <aside className="side">

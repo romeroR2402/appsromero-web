@@ -54,7 +54,11 @@ export function StoreProvider({ children }) {
   const loadPerfil = useCallback(async () => {
     if (!session) return setPerfil(null);
     const { data } = await sb.from('fg_perfiles').select('*').eq('id', session.user.id).maybeSingle();
-    setPerfil(data || { id: session.user.id, nombre: session.user.user_metadata?.nombre || '', telefono: '' });
+    if (data) return setPerfil(data);
+    const m = session.user.user_metadata || {};
+    const nuevo = { id: session.user.id, nombre: m.nombre || '', acepta_privacidad_at: m.acepta_privacidad_at || null, aviso_version: m.aviso_version || null, acepta_promociones: !!m.acepta_promociones };
+    const ins = await sb.from('fg_perfiles').upsert(nuevo).select().maybeSingle();
+    setPerfil(ins.data || { ...nuevo, telefono: '' });
   }, [session]);
   useEffect(() => { loadPerfil(); }, [loadPerfil]);
 

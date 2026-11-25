@@ -10,6 +10,7 @@ export function AdminProvider({ children }) {
   const [perfiles, setPerfiles] = useState([]);
   const [casos, setCasos] = useState([]);
   const [ajustes, setAjustes] = useState(null);
+  const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [toast, setToast] = useState(null);
@@ -17,20 +18,22 @@ export function AdminProvider({ children }) {
   const notify = useCallback((m) => { setToast(m); clearTimeout(t.current); t.current = setTimeout(() => setToast(null), 2600); }, []);
 
   const refresh = useCallback(async () => {
-    const [o, p, pf, c, a] = await Promise.all([
+    const [o, p, pf, c, a, s] = await Promise.all([
       sb.from('fg_pedidos').select('*').order('creado', { ascending: false }).limit(2000),
       sb.rpc('fg_productos_admin'),
       sb.from('fg_perfiles').select('*'),
       sb.from('fg_casos').select('*, fg_pedidos(folio,nombre,telefono)').order('creado', { ascending: false }),
       sb.from('fg_ajustes').select('*').eq('id', 1).single(),
+      sb.from('fg_solicitudes_datos').select('*').order('creado', { ascending: false }),
     ]);
-    const err = [o, p, pf, c, a].find((r) => r.error)?.error;
+    const err = [o, p, pf, c, a, s].find((r) => r.error)?.error;
     setError(err ? err.message : '');
     if (!o.error) setOrders(o.data);
     if (!p.error) setProducts(p.data);
     if (!pf.error) setPerfiles(pf.data);
     if (!c.error) setCasos(c.data);
     if (!a.error) setAjustes(a.data);
+    if (!s.error) setSolicitudes(s.data);
     setLoading(false);
   }, []);
 
@@ -40,7 +43,7 @@ export function AdminProvider({ children }) {
     return () => clearInterval(id);
   }, [refresh]);
 
-  const value = { orders, products, perfiles, casos, ajustes, setAjustes, loading, error, refresh, toast, notify };
+  const value = { orders, products, perfiles, casos, solicitudes, ajustes, setAjustes, loading, error, refresh, toast, notify };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 export const useAdmin = () => useContext(Ctx);

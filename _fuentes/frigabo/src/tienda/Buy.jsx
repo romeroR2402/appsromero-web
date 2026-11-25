@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CONDITIONS, errMsg, fmtDay, money } from '../lib/db.js';
+import { AVISO_VERSION, CONDITIONS, errMsg, fmtDay, money } from '../lib/db.js';
+import { AvisoCorto, ConsentimientoPendiente } from './Privacidad.jsx';
 import { sb, useStore } from './store.jsx';
 import { cleanText, isValidClabe, isValidPhone, onlyDigits } from '../security.js';
 import { ConditionBadge, Empty, Field, Header, Img, Qty, Sheet, Spinner } from '../components/UI.jsx';
@@ -122,6 +123,7 @@ export function Checkout({ go, back }) {
     nombre: cleanText(form.nombre, 80).length < 3 ? 'Escribe tu nombre (mín. 3 letras).' : '',
     telefono: !isValidPhone(form.telefono) ? 'WhatsApp de 10 dígitos.' : '',
     ok: !form.ok ? 'Necesitamos tu confirmación.' : '',
+    aviso: perfil?.aviso_version !== AVISO_VERSION ? 'Acepta el aviso de privacidad (arriba) para continuar.' : '',
   };
   const valid = !Object.values(errors).some(Boolean);
 
@@ -144,6 +146,7 @@ export function Checkout({ go, back }) {
   return (
     <div className="screen narrow checkout">
       <Header title="Entrega y pago" onBack={back} />
+      <ConsentimientoPendiente go={go} />
       <section className="box">
         <div className="box-head"><I.Pin size={18} /><b>Punto de entrega</b></div>
         <p><b>{ajustes.punto}</b><br /><span className="muted small">{ajustes.punto_detalle}</span></p>
@@ -180,6 +183,8 @@ export function Checkout({ go, back }) {
         <span>Entiendo el estado de cada producto (nuevo, usado o caja dañada) y lo revisaré al recibirlo.</span>
       </label>
       {touched && errors.ok && <p className="err">{errors.ok}</p>}
+      {touched && errors.aviso && <p className="err">{errors.aviso}</p>}
+      <AvisoCorto go={go} />
       <aside className="checkout-side">
         <div className="summary">
           <b className="side-title">Tu pedido</b>

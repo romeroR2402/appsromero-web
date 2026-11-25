@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import { CASO_ESTADOS, CASO_TIPOS, errMsg, fmtDateTime, money } from '../lib/db.js';
-import { cleanText, formatClabe, isValidClabe, onlyDigits } from '../security.js';
+import { CASO_ESTADOS, CASO_TIPOS, SOLICITUD_ESTADOS, SOLICITUD_TIPOS, errMsg, fmtDateTime, money } from '../lib/db.js';
+import { cleanText, formatClabe, isValidClabe, isValidEmail, onlyDigits } from '../security.js';
 import { CasoPill, Chips, Field, Sheet } from '../components/UI.jsx';
 import * as I from '../components/Icons.jsx';
 import { sb, useAdmin, VENTA } from './data.jsx';
@@ -15,7 +15,7 @@ export function Clientes() {
       r.pedidos += 1; if (VENTA.includes(o.estado)) r.gastado += Number(o.total);
       if (o.creado > r.ultimo) r.ultimo = o.creado;
     });
-    perfiles.forEach((p) => { by[p.id] = { pedidos: 0, gastado: 0, ...by[p.id], id: p.id, nombre: p.nombre || by[p.id]?.nombre || '—', telefono: p.telefono || by[p.id]?.telefono, alta: p.creado }; });
+    perfiles.forEach((p) => { by[p.id] = { pedidos: 0, gastado: 0, ...by[p.id], id: p.id, nombre: p.nombre || by[p.id]?.nombre || '—', telefono: p.telefono || by[p.id]?.telefono, alta: p.creado, promos: p.acepta_promociones }; });
     const t = q.trim().toLowerCase();
     return Object.values(by).filter((r) => !t || `${r.nombre} ${r.telefono} ${r.correo}`.toLowerCase().includes(t)).sort((a, b) => b.gastado - a.gastado);
   }, [perfiles, orders, q]);
@@ -29,7 +29,7 @@ export function Clientes() {
       <div className="toolbar"><label className="search-input"><I.Search size={18} /><input type="search" placeholder="Nombre, teléfono o correo" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar clientes" /></label></div>
       {!rows.length ? <p className="muted pad">Aún no hay clientes registrados.</p> : (
         <div className="table-wrap"><table className="table">
-          <thead><tr><th>Cliente</th><th>WhatsApp</th><th className="num">Pedidos</th><th className="num">Gastado</th><th>Último pedido</th></tr></thead>
+          <thead><tr><th>Cliente</th><th>WhatsApp</th><th className="num">Pedidos</th><th className="num">Gastado</th><th>Último pedido</th><th>Promociones</th></tr></thead>
           <tbody>{rows.map((r) => (
             <tr key={r.id}>
               <td><b>{r.nombre}</b><small className="muted">{r.correo || ''}</small></td>
@@ -37,6 +37,7 @@ export function Clientes() {
               <td className="num">{r.pedidos}</td>
               <td className="num"><b>{money(r.gastado)}</b></td>
               <td>{r.ultimo ? fmtDateTime(r.ultimo) : <span className="muted">Sin pedidos</span>}</td>
+              <td>{r.promos ? <span className="status ok">Acepta</span> : <span className="muted small">No</span>}</td>
             </tr>))}</tbody>
         </table></div>
       )}
@@ -101,8 +102,11 @@ export function Ajustes() {
     if (f.whatsapp && !/^\d{10}$/.test(f.whatsapp)) return setErr('WhatsApp de 10 dígitos.');
     const horarios = f.horarios.split('\n').map((h) => cleanText(h, 30)).filter(Boolean);
     if (!horarios.length) return setErr('Agrega al menos un horario.');
+    if (f.privacidad_correo && !isValidEmail(f.privacidad_correo)) return setErr('Correo de privacidad inválido.');
     const row = { nombre: cleanText(f.nombre, 60), titular: cleanText(f.titular, 80), banco: cleanText(f.banco, 40), clabe: f.clabe, whatsapp: f.whatsapp,
-      punto: cleanText(f.punto, 80), punto_detalle: cleanText(f.punto_detalle, 160), horarios, horas_pago: Math.max(1, Math.min(72, parseInt(f.horas_pago, 10) || 24)), actualizado: new Date().toISOString() };
+      punto: cleanText(f.punto, 80), punto_detalle: cleanText(f.punto_detalle, 160), horarios, horas_pago: Math.max(1, Math.min(72, parseInt(f.horas_pago, 10) || 24)),
+      responsable_nombre: cleanText(f.responsable_nombre, 120), responsable_domicilio: cleanText(f.responsable_domicilio, 240), privacidad_correo: f.privacidad_correo.trim().toLowerCase(),
+      actualizado: new Date().toISOString() };
     setBusy(true);
     const { data, error } = await sb.from('fg_ajustes').update(row).eq('id', 1).select().single();
     setBusy(false);
@@ -115,6 +119,7 @@ export function Ajustes() {
     { ok: ajustes.titular !== 'NOMBRE DEL TITULAR', t: 'Titular configurado', f: 'Tus clientes comparan este nombre en su app del banco.' },
     { ok: /^\d{10}$/.test(ajustes.whatsapp), t: 'WhatsApp de ventas', f: 'Sin WhatsApp los clientes no pueden mandarte su comprobante.' },
     { ok: location.protocol === 'https:', t: 'Sitio con HTTPS', f: 'Publica sólo por HTTPS.' },
+    { ok: !!ajustes.responsable_nombre && !!ajustes.privacidad_correo, t: 'Responsable de datos en el aviso de privacidad', f: 'Escribe tu nombre o razón social y un correo de contacto en “Privacidad” (abajo). Aparecen en el aviso de privacidad.' },
   ];
 
   return (
@@ -146,8 +151,88 @@ export function Ajustes() {
         <Field label="Indicaciones"><input className="input" maxLength={160} value={f.punto_detalle} onChange={set('punto_detalle')} /></Field>
         <Field label="Horarios (uno por línea)"><textarea className="input" rows={4} value={f.horarios} onChange={set('horarios')} /></Field>
       </section>
+      <section className="panel">
+        <div className="panel-head"><h2>Privacidad (aviso de privacidad)</h2><a className="link small" href="./#/privacidad" target="_blank" rel="noopener">Ver aviso</a></div>
+        <p className="hint">Estos datos identifican al responsable de los datos personales y aparecen en el aviso de privacidad de la tienda.</p>
+        <Field label="Nombre o razón social del responsable"><input className="input" maxLength={120} value={f.responsable_nombre || ''} onChange={set('responsable_nombre')} placeholder="Ej. Tu nombre completo" /></Field>
+        <Field label="Domicilio para oír y recibir notificaciones" hint="Puede ser un domicilio fiscal o de contacto; recomendado por la ley."><input className="input" maxLength={240} value={f.responsable_domicilio || ''} onChange={set('responsable_domicilio')} /></Field>
+        <Field label="Correo para temas de privacidad"><input className="input" type="email" maxLength={120} value={f.privacidad_correo || ''} onChange={set('privacidad_correo')} /></Field>
+      </section>
       {err && <p className="err-box" role="alert"><I.Alert size={16} /> {err}</p>}
       <button className="btn" disabled={busy} onClick={save}>{busy ? 'Guardando…' : 'Guardar ajustes'}</button>
     </div>
+  );
+}
+
+const diasDesde = (d) => Math.floor((Date.now() - new Date(d)) / 86400000);
+
+export function Privacidad() {
+  const { solicitudes, perfiles, orders, refresh, notify } = useAdmin();
+  const [filtro, setFiltro] = useState('pendientes');
+  const [sel, setSel] = useState(null);
+  const [f, setF] = useState({ estado: 'en_proceso', respuesta: '' });
+  const [busy, setBusy] = useState(false);
+  const [confirmBorrar, setConfirmBorrar] = useState(false);
+  const quien = (id) => {
+    const p = perfiles.find((x) => x.id === id); const o = orders.find((x) => x.cliente_id === id);
+    return { nombre: p?.nombre || o?.nombre || 'Cliente', telefono: p?.telefono || o?.telefono || '', correo: o?.correo || '' };
+  };
+  const list = solicitudes.filter((s) => filtro === 'todas' || (filtro === 'pendientes' ? ['recibida', 'en_proceso'].includes(s.estado) : s.estado === filtro));
+  const open = (s) => { setSel(s); setConfirmBorrar(false); setF({ estado: s.estado === 'recibida' ? 'en_proceso' : s.estado, respuesta: s.respuesta }); };
+  const save = async () => {
+    setBusy(true);
+    const { error } = await sb.from('fg_solicitudes_datos').update({ estado: f.estado, respuesta: cleanText(f.respuesta, 1500), actualizado: new Date().toISOString() }).eq('id', sel.id);
+    setBusy(false);
+    if (error) return notify(errMsg(error));
+    notify('Solicitud actualizada'); setSel(null); refresh();
+  };
+  const borrar = async () => {
+    setBusy(true);
+    const { error } = await sb.rpc('fg_anonimizar_cliente', { p_cliente: sel.cliente_id });
+    if (error) { setBusy(false); setConfirmBorrar(false); return notify(errMsg(error)); }
+    const resp = 'Eliminamos tu perfil y quitamos tu nombre, teléfono y correo de tus pedidos. Conservamos sólo montos y productos de tus compras por obligaciones fiscales.';
+    await sb.from('fg_solicitudes_datos').update({ estado: 'atendida', respuesta: resp, actualizado: new Date().toISOString() }).eq('id', sel.id);
+    setBusy(false); notify('Datos del cliente eliminados'); setSel(null); refresh();
+  };
+  const c = sel && quien(sel.cliente_id);
+  return (
+    <>
+      <p className="note">Aquí llegan las solicitudes de tus clientes para ver, corregir, borrar sus datos u oponerse a su uso (derechos ARCO). Atiéndelas pronto y siempre deja una respuesta: el cliente la ve en su cuenta y queda registrada con fecha.</p>
+      <Chips label="Filtro" value={filtro} onChange={setFiltro} options={[{ value: 'pendientes', label: 'Pendientes' }, { value: 'atendida', label: 'Atendidas' }, { value: 'rechazada', label: 'Rechazadas' }, { value: 'todas', label: 'Todas' }]} />
+      {!list.length ? <p className="muted pad">No hay solicitudes aquí.</p> : (
+        <ul className="case-list">{list.map((s) => {
+          const q = quien(s.cliente_id); const d = diasDesde(s.creado); const pend = ['recibida', 'en_proceso'].includes(s.estado);
+          return (
+            <li key={s.id}><button onClick={() => open(s)}>
+              <div className="grow"><b>{SOLICITUD_TIPOS[s.tipo].label}</b><small className="muted">{q.nombre} · {fmtDateTime(s.creado)}{pend && <> · <span className={d >= 10 ? 'err' : ''}>hace {d} día(s)</span></>}</small>{s.detalle && <p className="small">“{s.detalle}”</p>}</div>
+              <span className={`status ${SOLICITUD_ESTADOS[s.estado].tone}`}>{SOLICITUD_ESTADOS[s.estado].label}</span>
+            </button></li>
+          );
+        })}</ul>
+      )}
+      <Sheet open={!!sel} onClose={() => setSel(null)} title={sel ? `Solicitud de ${SOLICITUD_TIPOS[sel.tipo].label.toLowerCase()}` : ''}>
+        {sel && (<>
+          <p><b>{c.nombre}</b><br /><small className="muted">{c.correo}{c.telefono && c.telefono !== '0000000000' ? ` · WhatsApp ${c.telefono}` : ''} · recibida {fmtDateTime(sel.creado)}</small></p>
+          {sel.detalle && <p className="note">“{sel.detalle}”</p>}
+          <p className="hint">{{
+            acceso: 'Responde qué datos tienes (nombre, correo, WhatsApp, pedidos, casos) y para qué los usas. El cliente también puede descargarlos él mismo desde su cuenta.',
+            rectificacion: 'Corrige el dato y avísale. El cliente puede editar su nombre y WhatsApp desde su cuenta.',
+            cancelacion: 'Si no tiene pedidos en curso, usa “Borrar datos del cliente”. Se borra su perfil y se anonimizan sus pedidos; se conservan montos por obligaciones fiscales.',
+            oposicion: 'Deja de usar sus datos para el fin indicado (por ejemplo, no enviarle promociones) y confírmaselo.',
+            revocacion: 'Deja de usar sus datos para las finalidades voluntarias. Si revoca lo necesario para vender, explica que ya no podrá comprar y ofrécele borrar sus datos.',
+          }[sel.tipo]}</p>
+          <label className="lbl">Estado</label>
+          <Chips wrap label="Estado" value={f.estado} onChange={(v) => setF({ ...f, estado: v })} options={Object.entries(SOLICITUD_ESTADOS).map(([value, x]) => ({ value, label: x.label }))} />
+          <Field label="Respuesta para el cliente"><textarea className="input" rows={4} maxLength={1500} value={f.respuesta} onChange={(e) => setF({ ...f, respuesta: e.target.value })} /></Field>
+          {sel.tipo === 'cancelacion' && ['recibida', 'en_proceso'].includes(sel.estado) && (
+            confirmBorrar ? (
+              <div className="confirm-bar"><p>¿Borrar el perfil de {c.nombre} y quitar sus datos de todos sus pedidos? No se puede deshacer.</p>
+                <div className="row2"><button className="btn ghost" onClick={() => setConfirmBorrar(false)}>No</button><button className="btn" disabled={busy} onClick={borrar}>Sí, borrar</button></div></div>
+            ) : <button className="btn ghost full danger" onClick={() => setConfirmBorrar(true)}><I.Trash size={18} /> Borrar datos del cliente</button>
+          )}
+          <div className="row2 sheet-actions"><button className="btn ghost" onClick={() => setSel(null)}>Cancelar</button><button className="btn" disabled={busy} onClick={save}>Guardar</button></div>
+        </>)}
+      </Sheet>
+    </>
   );
 }

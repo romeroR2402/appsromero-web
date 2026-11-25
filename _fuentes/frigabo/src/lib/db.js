@@ -53,3 +53,19 @@ export function errMsg(e) {
   if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión. Revisa tu internet.';
   return m;
 }
+
+// Privacidad
+export const AVISO_VERSION = '2026-11-25';
+export const SOLICITUD_TIPOS = {
+  acceso: { label: 'Acceso', hint: 'Saber qué datos tenemos y cómo los usamos.' },
+  rectificacion: { label: 'Rectificación', hint: 'Corregir datos inexactos o incompletos.' },
+  cancelacion: { label: 'Cancelación', hint: 'Borrar mis datos y mi perfil de la tienda.' },
+  oposicion: { label: 'Oposición', hint: 'Que dejen de usar mis datos para un fin específico.' },
+  revocacion: { label: 'Revocar consentimiento', hint: 'Retirar el permiso que di para usar mis datos.' },
+};
+export const SOLICITUD_ESTADOS = {
+  recibida: { label: 'Recibida', tone: 'warn' },
+  en_proceso: { label: 'En proceso', tone: 'warn' },
+  atendida: { label: 'Atendida', tone: 'ok' },
+  rechazada: { label: 'Rechazada', tone: 'bad' },
+};

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { CASO_TIPOS, ESTADOS, errMsg, fmtDateTime, fmtDay, money } from '../lib/db.js';
+import { AVISO_VERSION, CASO_TIPOS, ESTADOS, errMsg, fmtDateTime, fmtDay, money } from '../lib/db.js';
+import { AvisoCorto, ConsentimientoPendiente } from './Privacidad.jsx';
 import { sb, useStore } from './store.jsx';
 import { cleanText, formatClabe, isValidEmail, isValidPhone, onlyDigits, passwordIssue } from '../security.js';
 import { CasoPill, Chips, ConditionBadge, Empty, Field, Header, Img, LogoMark, Sheet, Spinner, StatusPill, Wordmark } from '../components/UI.jsx';
@@ -10,7 +11,7 @@ const redirectUrl = () => location.origin + location.pathname;
 export function AuthScreen({ go, back, next }) {
   const { notify, recovery } = useStore();
   const [mode, setMode] = useState('entrar');
-  const [f, setF] = useState({ nombre: '', email: '', pass: '' });
+  const [f, setF] = useState({ nombre: '', email: '', pass: '', acepto: false, promos: false });
   const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [info, setInfo] = useState('');
@@ -32,16 +33,18 @@ export function AuthScreen({ go, back, next }) {
     if (mode === 'crear') {
       if (cleanText(f.nombre, 80).length < 3) return setErr('Escribe tu nombre.');
       const pi = passwordIssue(f.pass); if (pi) return setErr(pi);
+      if (!f.acepto) return setErr('Para crear tu cuenta necesitas aceptar el aviso de privacidad.');
     }
+    const consent = { acepta_privacidad_at: new Date().toISOString(), aviso_version: AVISO_VERSION, acepta_promociones: f.promos };
     setBusy(true);
     const res = mode === 'crear'
-      ? await sb.auth.signUp({ email, password: f.pass, options: { data: { nombre: cleanText(f.nombre, 80) }, emailRedirectTo: redirectUrl() } })
+      ? await sb.auth.signUp({ email, password: f.pass, options: { data: { nombre: cleanText(f.nombre, 80), ...consent }, emailRedirectTo: redirectUrl() } })
       : await sb.auth.signInWithPassword({ email, password: f.pass });
     setBusy(false);
     if (res.error) return setErr(errMsg(res.error));
     if (mode === 'crear') {
       if (!res.data.session) return setInfo('¡Listo! Te enviamos un correo para confirmar tu cuenta. Ábrelo y luego inicia sesión.');
-      await sb.from('fg_perfiles').upsert({ id: res.data.user.id, nombre: cleanText(f.nombre, 80) });
+      await sb.from('fg_perfiles').upsert({ id: res.data.user.id, nombre: cleanText(f.nombre, 80), ...consent });
     }
     notify(mode === 'crear' ? 'Cuenta creada' : 'Bienvenido de nuevo');
     go(next || '/cuenta', { replace: true });
@@ -65,13 +68,23 @@ export function AuthScreen({ go, back, next }) {
             </div>
           </Field>
         )}
+        {mode === 'crear' && (<>
+          <label className="check">
+            <input type="checkbox" checked={f.acepto} onChange={(e) => setF({ ...f, acepto: e.target.checked })} />
+            <span>He leído y acepto el <button type="button" className="link inline" onClick={() => go('/privacidad')}>aviso de privacidad</button> para crear mi cuenta y gestionar mis pedidos.</span>
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={f.promos} onChange={(e) => setF({ ...f, promos: e.target.checked })} />
+            <span>Quiero recibir novedades y ofertas por WhatsApp o correo (opcional).</span>
+          </label>
+        </>)}
         {err && <p className="err-box" role="alert"><I.Alert size={16} /> {err}</p>}
         {info && <p className="ok-box" role="status"><I.Check size={16} /> {info}</p>}
         <button className="btn full" disabled={busy}>{busy ? 'Un momento…' : mode === 'crear' ? 'Crear cuenta' : mode === 'olvide' ? 'Enviar enlace' : 'Entrar'}</button>
       </form>
       {mode === 'entrar' && <button className="link center" onClick={() => { setMode('olvide'); setErr(''); }}>¿Olvidaste tu contraseña?</button>}
       {mode === 'olvide' && <button className="link center" onClick={() => setMode('entrar')}>Volver a iniciar sesión</button>}
-      <p className="muted small center legal"><I.Shield size={14} /> Sólo usamos tu nombre, correo y WhatsApp para tus pedidos. Nunca te pediremos datos de tarjeta.</p>
+      <AvisoCorto go={go} />
     </div>
   );
 }
@@ -134,6 +147,7 @@ export function CuentaScreen({ go }) {
   return (
     <div className="screen narrow">
       <Header title="Mi cuenta" />
+      <ConsentimientoPendiente go={go} />
       <section className="profile-card">
         <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
         <div><b>{name}</b><small>{user.email}</small>{perfil?.telefono && <small>WhatsApp {perfil.telefono}</small>}</div>
@@ -148,6 +162,7 @@ export function CuentaScreen({ go }) {
         <li><button onClick={() => go('/pedidos')}><I.Receipt /> Mis pedidos y entregas <I.Arrow size={16} /></button></li>
         <li><button onClick={() => go('/casos')}><I.Chat /> Resolución de problemas <I.Arrow size={16} /></button></li>
         <li><button onClick={() => go('/favoritos')}><I.Heart /> Favoritos ({favs.length}) <I.Arrow size={16} /></button></li>
+        <li><button onClick={() => go('/mis-datos')}><I.Lock /> Privacidad y mis datos <I.Arrow size={16} /></button></li>
         <li><button onClick={() => go('/seguridad')}><I.Shield /> Compra segura <I.Arrow size={16} /></button></li>
         <li><button onClick={async () => { await sb.auth.signOut(); notify('Sesión cerrada'); go('/'); }}><I.LogOut /> Cerrar sesión</button></li>
       </ul>

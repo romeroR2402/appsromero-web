@@ -3,6 +3,7 @@ import { useStore } from './store.jsx';
 import { Home, ListScreen, SearchScreen } from './Browse.jsx';
 import { CartScreen, Checkout, ProductScreen } from './Buy.jsx';
 import { AuthScreen, CasosScreen, CuentaScreen, PedidoScreen, PedidosScreen, SeguridadScreen } from './Cuenta.jsx';
+import { AvisoPrivacidad, MisDatos } from './Privacidad.jsx';
 import * as I from '../components/Icons.jsx';
 import { LogoMark, Wordmark } from '../components/UI.jsx';
 
@@ -43,6 +44,8 @@ export default function App() {
     case 'pedido': screen = <PedidoScreen key={path} folio={seg[1]} go={go} />; break;
     case 'casos': screen = <CasosScreen go={go} />; break;
     case 'seguridad': screen = <SeguridadScreen back={back} />; break;
+    case 'privacidad': screen = <AvisoPrivacidad back={back} go={go} />; break;
+    case 'mis-datos': screen = <MisDatos go={go} back={back} />; break;
     default: screen = <Home go={go} />;
   }
   const tabs = [
@@ -57,6 +60,14 @@ export default function App() {
     <div className={`app ${showNav ? 'with-nav' : ''}`}>
       <DesktopHeader path={path} go={go} tabs={tabs} />
       <main>{screen}</main>
+      <footer className={`site-footer ${['p', 'carrito', 'checkout'].includes(seg[0]) ? 'hide-mobile' : ''}`}>
+        <span>© {new Date().getFullYear()} Fri &amp; Gabo · Todo a un clic</span>
+        <nav aria-label="Legal">
+          <button onClick={() => go('/privacidad')}>Aviso de privacidad</button>
+          <button onClick={() => go('/mis-datos')}>Mis datos</button>
+          <button onClick={() => go('/seguridad')}>Compra segura</button>
+        </nav>
+      </footer>
       {showNav && (
         <nav className="bottom-nav" aria-label="Principal">
           {tabs.map((t) => (
