@@ -48,7 +48,19 @@ export function errMsg(e) {
   if (/Invalid login credentials/i.test(m)) return 'Correo o contraseña incorrectos.';
   if (/Email not confirmed/i.test(m)) return 'Confirma tu correo: te enviamos un enlace.';
   if (/User already registered/i.test(m)) return 'Ese correo ya tiene cuenta. Inicia sesión.';
-  if (/Password should be/i.test(m)) return 'La contraseña debe tener al menos 8 caracteres.';
+  // Reglas de contraseña de Supabase: se explica el motivo real del rechazo
+  const largo = m.match(/Password should be at least (\d+)/i);
+  if (largo) return `La contraseña debe tener al menos ${largo[1]} caracteres.`;
+  if (/Password should contain/i.test(m)) {
+    const pide = [];
+    if (/abcdefghijklmnopqrstuvwxyz/.test(m)) pide.push('minúsculas');
+    if (/ABCDEFGHIJKLMNOPQRSTUVWXYZ/.test(m)) pide.push('mayúsculas');
+    if (/0123456789/.test(m)) pide.push('números');
+    if (/[!@#$%^&*()_+\-=[\]{};':"|<>?,./`~]{5,}/.test(m)) pide.push('símbolos (como ! @ # $)');
+    return `La contraseña debe incluir ${pide.length ? pide.join(', ') : 'distintos tipos de caracteres'}.`;
+  }
+  if (/weak|pwned|leaked|easy to guess/i.test(m) || e?.code === 'weak_password') return 'Esa contraseña es muy común o apareció en filtraciones de internet. Elige otra.';
+  if (/should be different/i.test(m) || e?.code === 'same_password') return 'La nueva contraseña debe ser distinta a la anterior.';
   if (/rate limit/i.test(m)) return 'Demasiados intentos. Espera unos minutos.';
   if (/Failed to fetch|NetworkError/i.test(m)) return 'Sin conexión. Revisa tu internet.';
   return m;
