@@ -18,6 +18,7 @@ export function AdminProvider({ children }) {
   const notify = useCallback((m) => { setToast(m); clearTimeout(t.current); t.current = setTimeout(() => setToast(null), 2600); }, []);
 
   const refresh = useCallback(async () => {
+    await sb.rpc('fg_liberar_vencidos'); // cancela apartados vencidos y devuelve su stock
     const [o, p, pf, c, a, s] = await Promise.all([
       sb.from('fg_pedidos').select('*').order('creado', { ascending: false }).limit(2000),
       sb.rpc('fg_productos_admin'),

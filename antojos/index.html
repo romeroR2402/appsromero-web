@@ -493,6 +493,7 @@ function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show
 
 /* ---------- Panel del negocio ---------- */
 const STATES = ['Nuevo','Preparando','Listo','Entregado'];
+const esc = v => String(v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 let ORDERS = [];
 function sampleOrders(){
   const names = ['Mariana R.','Jorge T.','Fam. Castillo','Sofía M.','Luis A.'];
@@ -505,7 +506,7 @@ function renderOrders(){
   const tb = $('rows'); tb.innerHTML = '';
   ORDERS.forEach(o => {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td class="num">${o.id}<small>${o.hora}</small></td><td>${o.cli}</td><td>${o.items.join('<br>')}</td><td>${o.ent}</td><td class="num">${fmt(o.tot)}</td><td><button type="button" class="st s${o.st}">${STATES[o.st]}</button></td>`;
+    tr.innerHTML = `<td class="num">${o.id}<small>${o.hora}</small></td><td>${esc(o.cli)}</td><td>${o.items.map(esc).join('<br>')}</td><td>${esc(o.ent)}</td><td class="num">${fmt(o.tot)}</td><td><button type="button" class="st s${o.st}">${STATES[o.st]}</button></td>`;
     tr.querySelector('.st').onclick = () => { o.st = (o.st+1)%4; renderOrders(); };
     tb.appendChild(tr);
   });
