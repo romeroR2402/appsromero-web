@@ -73,12 +73,14 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 /* HERO */
 .hero{position:relative;overflow:hidden;padding-block:72px 40px}
 #net{position:absolute;inset:0;width:100%;height:100%;z-index:0}
-.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center}
+.hero .wrap{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;align-items:center}
 .hero h1{font-size:clamp(40px,6.2vw,76px);font-weight:800;letter-spacing:-.01em;margin-top:18px}
 .hero h1 em{font-style:italic;background:linear-gradient(100deg,var(--gold-deep),var(--gold) 40%,var(--gold-hi) 60%,var(--gold));background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
 @keyframes shine{to{background-position:-200% 0}}
-.rotator{display:block;min-height:1.1em;color:var(--text)}
+.rotator{display:block;height:2.3em;color:var(--text)}
+
 .rotator .word{display:inline-block;border-right:3px solid var(--gold);padding-right:6px;animation:caret 1s steps(1) infinite}
+.hero .rotator .word{display:block;width:fit-content;max-width:100%;white-space:nowrap;min-height:1.15em}
 @keyframes caret{50%{border-color:transparent}}
 .hero p.lead{font-size:clamp(17px,1.6vw,19px);color:var(--muted);max-width:54ch;margin:22px 0 30px}
 .cta-row{display:flex;flex-wrap:wrap;gap:12px}
@@ -254,6 +256,7 @@ textarea{min-height:110px;resize:vertical}
 .ferr{margin:0;color:#B3261E;font-weight:600;font-size:14px}
 .result pre{margin:0;white-space:pre-wrap;font:400 13px/1.5 var(--f-mono)}
 .result .acts{display:flex;flex-wrap:wrap;gap:8px}
+.result .acts[hidden]{display:none}
 .result .btn{padding:10px 16px;font-size:13px}
 @media (max-width:900px){.contact{grid-template-columns:1fr}}
 @media (max-width:520px){.f2{grid-template-columns:1fr}}
@@ -270,6 +273,29 @@ footer .brand b{color:#fff}
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .row{opacity:1;transform:none}
 }
+/* Ajustes móviles y contacto */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.nav-cta{white-space:nowrap;flex:none;gap:0}
+@media (max-width:420px){.nav .wrap{gap:10px}.nav .btn.nav-cta{padding:10px 14px;font-size:13px}.brand img{height:34px}.brand b{font-size:17px}.xs-hide{display:none}}
+.ways{display:grid;gap:12px}
+.way{display:flex;gap:14px;align-items:center;padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--paper);text-decoration:none;color:inherit;transition:border-color .2s, transform .2s}
+.way:hover{border-color:var(--gold);transform:translateY(-1px)}
+.way svg{width:24px;height:24px;color:var(--gold);flex:none}
+.way span{min-width:0}
+.way small{display:block;color:var(--muted);font-size:12px}
+.way b{font-weight:700;word-break:break-word}
+.wa-way svg{color:#1faa53}
+.result.ok{border-style:solid;border-color:#1faa53;background:#effaf3}
+.fnote{margin:0;color:var(--muted);font-size:12px}
+.wa-float{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));z-index:60;display:flex;align-items:center;gap:10px;text-decoration:none}
+.wa-float .bubble{width:58px;height:58px;border-radius:50%;background:#25D366;color:#fff;display:grid;place-items:center;box-shadow:0 12px 28px -8px rgba(0,0,0,.45);transition:transform .2s}
+.wa-float .bubble svg{width:30px;height:30px}
+.wa-float:hover .bubble{transform:scale(1.06)}
+.wa-float .tip{background:#fff;color:#1A1C22;font:700 13px/1.2 var(--f-body);padding:9px 12px;border-radius:999px;box-shadow:0 8px 24px -10px rgba(0,0,0,.35);opacity:0;transform:translateX(8px);transition:all .25s;pointer-events:none}
+.wa-float:hover .tip,.wa-float:focus-visible .tip{opacity:1;transform:none}
+.wa-float:focus-visible{outline:none}.wa-float:focus-visible .bubble{outline:3px solid var(--gold);outline-offset:3px}
+@media (hover:none){.wa-float .tip{display:none}}
+footer{padding-bottom:96px}
 </style>
 </head>
 <body>
@@ -286,7 +312,7 @@ footer .brand b{color:#fff}
       <li><a href="#proceso">Cómo trabajamos</a></li>
       <li><a href="#planes">Planes</a></li>
     </ul>
-    <a class="btn btn-gold" href="#contacto">Cotizar mi app</a>
+    <a class="btn btn-gold nav-cta" href="#contacto">Cotizar<span class="xs-hide"> mi app</span></a>
   </div>
 </header>
 
@@ -297,7 +323,7 @@ footer .brand b{color:#fff}
       <div>
         <span class="eyebrow">Software a la medida · Micro APIs</span>
         <h1>Tu negocio merece <em>su propia app.</em>
-          <span class="rotator" aria-live="polite">Para tu <span class="word" id="word">heladería</span></span>
+          <span class="rotator" aria-hidden="true">Para tu <span class="word" id="word">heladería</span></span><span class="sr-only">Para tu heladería, tienda, consultorio, papelería, estética, panadería o taller.</span>
         </h1>
         <p class="lead">Creamos aplicaciones y micro APIs para negocios pequeños: tiendas, heladerías, consultorios, talleres y emprendimientos. Las hacemos desde cero para ti, o entras a una de nuestras apps listas y empiezas a usarla hoy.</p>
         <div class="cta-row">
@@ -531,9 +557,17 @@ footer .brand b{color:#fff}
       <div class="info reveal">
         <span class="eyebrow">Contacto</span>
         <h2>Cuéntanos de tu negocio.</h2>
-        <p>Déjanos tus datos y te contactamos. Tu solicitud nos llega por correo y por WhatsApp.</p>
-        <div class="cline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg><div><small>WhatsApp</small><b id="c-phone"></b></div></div>
-        <div class="cline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg><div><small>Correo</small><b id="c-mail"></b></div></div>
+        <p>Elige cómo prefieres contactarnos: llena el formulario y nos llega a nuestro correo, o escríbenos directo por WhatsApp.</p>
+        <div class="ways">
+          <a class="way wa-way" id="c-wa" href="#" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg>
+            <span><small>Respuesta rápida</small><b>Escríbenos por WhatsApp</b></span>
+          </a>
+          <a class="way" id="c-mailto" href="#">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <span><small>Correo</small><b id="c-mail"></b></span>
+          </a>
+        </div>
       </div>
       <form id="form" class="reveal" novalidate>
         <div class="f2">
@@ -567,14 +601,14 @@ footer .brand b{color:#fff}
         <label for="f-msg">¿Qué te gustaría que hiciera tu app?<textarea id="f-msg" name="msg" placeholder="Ej. Llevar el inventario de sabores y que mis clientes vean qué hay disponible."></textarea></label>
         <button class="btn btn-gold" type="submit" id="f-send" style="justify-content:center">Enviar solicitud</button>
         <div class="result" id="result" aria-live="polite">
-          <b id="result-status">Enviando…</b>
-          <span id="result-help">Para que te atendamos más rápido, mándanos también este mensaje por WhatsApp:</span>
-          <pre id="result-text"></pre>
-          <div class="acts">
+          <b id="result-status"></b>
+          <span id="result-help"></span>
+          <div class="acts" id="result-acts" hidden>
             <a class="btn btn-gold" id="wa" href="#" target="_blank" rel="noopener">Enviar por WhatsApp</a>
-            <button class="btn btn-ghost" type="button" id="copy">Copiar mensaje</button>
+            <a class="btn btn-ghost" id="mail-fallback" href="#">Enviar por correo</a>
           </div>
         </div>
+        <p class="fnote">Usamos tus datos sólo para responder tu solicitud.</p>
       </form>
     </div>
   </section>
@@ -587,6 +621,11 @@ footer .brand b{color:#fff}
     <span>© <span id="year">2026</span> Apps Romero</span>
   </div>
 </footer>
+
+<a class="wa-float" id="wa-float" href="#" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+  <span class="tip">¿Dudas? Escríbenos</span>
+  <span class="bubble"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.3-.2-.5-.3Z"/></svg></span>
+</a>
 
 <script>
 /* ============ CONFIGURACIÓN — edita aquí tus enlaces y contacto ============ */
@@ -609,8 +648,13 @@ document.querySelectorAll('[data-link]').forEach(a => {
   if (url) { a.href = url; a.target = '_blank'; a.rel = 'noopener'; }
   else { a.setAttribute('aria-disabled','true'); a.textContent = 'Enlace próximamente'; a.addEventListener('click', e => e.preventDefault()); }
 });
-document.getElementById('c-phone').textContent = CONFIG.whatsapp ? CONFIG.whatsapp.replace(/^52(\d{2})(\d{4})(\d{4})$/, '+52 $1 $2 $3') : 'Agrega tu número en CONFIG';
-document.getElementById('c-mail').textContent = CONFIG.correo || 'Agrega tu correo en CONFIG';
+const WA_SALUDO = 'Hola Apps Romero, me interesa una app para mi negocio. ¿Me pueden dar información?';
+const waLink = (t) => 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(t);
+const mailLink = (asunto, cuerpo) => 'mailto:' + CONFIG.correo + '?subject=' + encodeURIComponent(asunto) + (cuerpo ? '&body=' + encodeURIComponent(cuerpo) : '');
+document.getElementById('wa-float').href = waLink(WA_SALUDO);
+document.getElementById('c-wa').href = waLink(WA_SALUDO);
+document.getElementById('c-mail').textContent = CONFIG.correo;
+document.getElementById('c-mailto').href = mailLink('Quiero cotizar una app');
 
 // Palabra rotatoria
 const words = ['heladería','tienda','consultorio','papelería','estética','panadería','taller'];
@@ -750,63 +794,70 @@ document.querySelectorAll('[data-plan]').forEach(a => a.addEventListener('click'
   document.getElementById('f-plan').value = a.dataset.plan;
 }));
 
-// Formulario de contacto: llega a tu correo (FormSubmit) y abre WhatsApp con todos los datos
+// Formulario de contacto: se guarda en la base de datos (respaldo) y llega a tu correo.
+// WhatsApp NO se abre solo: queda como opción si el correo falla, y en el globito flotante.
+const DB = { url: 'https://vsmseukmtshfkswlhdmq.supabase.co', key: 'sb_publishable_J6IcD8ARpQ6oxaNwzfUnzw_0nR8rW6_' }; // clave pública
 const form = document.getElementById('form');
 const ferr = document.getElementById('f-err');
 const fail = (id, text) => { ferr.textContent = text; ferr.hidden = false; document.getElementById(id).focus(); };
+const rpc = (fn, body) => fetch(`${DB.url}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: DB.key, 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+const conTiempo = (p, ms) => Promise.race([p, new Promise((_, r) => setTimeout(() => r(new Error('tiempo')), ms))]);
+let enviando = false;
 form.addEventListener('submit', async e => {
   e.preventDefault();
+  if (enviando) return;
   ferr.hidden = true;
   const d = new FormData(form), v = k => (d.get(k) || '').toString().trim();
   if (v('_honey')) return;
-  if (!v('name')) return fail('f-name', 'Escribe tu nombre.');
+  if (v('name').length < 2) return fail('f-name', 'Escribe tu nombre.');
   if (v('phone').replace(/\D/g, '').length < 10) return fail('f-phone', 'Escribe un teléfono de 10 dígitos para poder contactarte.');
-  if (v('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) return fail('f-email', 'Revisa tu correo, parece incompleto.');
+  if (v('email') && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v('email'))) return fail('f-email', 'Revisa tu correo, parece incompleto.');
 
   const datos = {
     'Nombre': v('name'), 'Teléfono / WhatsApp': v('phone'), 'Correo': v('email') || 'No lo dejó',
     'Negocio': v('biz') || 'No lo dejó', 'Tipo de negocio': v('giro'), 'Le interesa': v('plan'),
     'Qué necesita': v('msg') || 'Sin detalles'
   };
-  const msg = `Hola Apps Romero, soy ${datos['Nombre']}${v('biz') ? ' de ' + v('biz') : ''}.\n` +
-    `Tipo de negocio: ${datos['Tipo de negocio']}\nMe interesa: ${datos['Le interesa']}\n` +
-    `Mi teléfono: ${datos['Teléfono / WhatsApp']}\nMi correo: ${datos['Correo']}` +
-    (v('msg') ? `\n\n${v('msg')}` : '');
-  const waUrl = 'https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg);
-
-  // WhatsApp: se abre en la misma acción del clic (si el navegador lo permite) y queda el botón.
-  try { window.open(waUrl, '_blank', 'noopener'); } catch (_) {}
-  document.getElementById('result-text').textContent = msg;
-  document.getElementById('wa').href = waUrl;
-  const status = document.getElementById('result-status');
-  status.textContent = 'Enviando tu solicitud…';
-  document.getElementById('result').classList.add('show');
-
-  // Correo: aviso con todos los datos a CONFIG.correo
+  const texto = Object.entries(datos).map(([k, x]) => `${k}: ${x}`).join('\n');
   const btn = document.getElementById('f-send');
-  btn.disabled = true; btn.textContent = 'Enviando…';
-  let ok = false;
+  const box = document.getElementById('result'), status = document.getElementById('result-status'), help = document.getElementById('result-help'), acts = document.getElementById('result-acts');
+  enviando = true; btn.disabled = true; btn.textContent = 'Enviando…';
+  box.classList.remove('ok'); acts.hidden = true;
+
+  // 1) Respaldo en la base de datos (nunca se pierde una cotización)
+  let id = null;
   try {
-    const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 12000);
-    const r = await fetch('https://formsubmit.co/ajax/' + CONFIG.correo, {
-      method: 'POST', signal: ctrl.signal,
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({ _subject: `Nuevo cliente: ${datos['Nombre']} (${datos['Tipo de negocio']})`, _template: 'table', _captcha: 'false', ...(v('email') ? { _replyto: v('email') } : {}), ...datos })
-    });
-    clearTimeout(t);
+    const r = await conTiempo(rpc('ar_nueva_cotizacion', { p_nombre: v('name'), p_negocio: v('biz'), p_telefono: v('phone'), p_correo: v('email'), p_giro: v('giro'), p_interes: v('plan'), p_mensaje: v('msg') }), 10000);
+    if (r.ok) id = await r.json();
+  } catch (_) {}
+
+  // 2) Aviso a tu correo
+  let correoOk = false;
+  try {
+    const r = await conTiempo(fetch('https://formsubmit.co/ajax/' + CONFIG.correo, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({ _subject: `Nueva cotización: ${datos['Nombre']} (${datos['Tipo de negocio']})`, _template: 'table', _captcha: 'false', ...(v('email') ? { _replyto: v('email') } : {}), ...datos })
+    }), 15000);
     const j = await r.json().catch(() => ({}));
-    ok = r.ok && String(j.success) === 'true';
-  } catch (_) { ok = false; }
-  btn.disabled = false; btn.textContent = 'Enviar solicitud';
-  status.textContent = ok ? 'Listo, recibimos tus datos. Te contactamos muy pronto.' : 'Falta un paso: mándanos tu mensaje por WhatsApp.';
-  document.getElementById('result-help').textContent = ok ? 'Si quieres respuesta inmediata, mándanos también este mensaje por WhatsApp:' : 'Toca "Enviar por WhatsApp" y presiona enviar en el chat.';
-  if (ok) form.querySelectorAll('input:not([type=radio]),textarea').forEach(i => i.value = '');
-});
-document.getElementById('copy').addEventListener('click', async e => {
-  const t = document.getElementById('result-text');
-  try { await navigator.clipboard.writeText(t.textContent); e.target.textContent = 'Copiado'; }
-  catch { const r = document.createRange(); r.selectNodeContents(t); const s = getSelection(); s.removeAllRanges(); s.addRange(r); e.target.textContent = 'Texto seleccionado'; }
-  setTimeout(() => e.target.textContent = 'Copiar mensaje', 2000);
+    correoOk = r.ok && String(j.success) === 'true';
+  } catch (_) {}
+  if (correoOk && id) rpc('ar_marcar_correo', { p_id: id }).catch(() => {});
+
+  enviando = false; btn.disabled = false; btn.textContent = 'Enviar solicitud';
+  box.classList.add('show');
+  if (correoOk || id) {
+    box.classList.add('ok');
+    status.textContent = '¡Listo! Recibimos tu solicitud.';
+    help.textContent = 'Te contactamos muy pronto por WhatsApp o correo. Si quieres respuesta inmediata, usa el botón verde de WhatsApp.';
+    form.querySelectorAll('input:not([type=radio]),textarea').forEach(i => i.value = '');
+  } else {
+    status.textContent = 'No pudimos enviar tu solicitud.';
+    help.textContent = 'Revisa tu conexión e intenta de nuevo, o mándanos tus datos por alguno de estos medios:';
+    document.getElementById('wa').href = waLink(`Hola Apps Romero, quiero cotizar una app.\n${texto}`);
+    document.getElementById('mail-fallback').href = mailLink(`Cotización: ${datos['Nombre']}`, texto);
+    acts.hidden = false;
+  }
+  box.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
 });
 </script>
 </body>
